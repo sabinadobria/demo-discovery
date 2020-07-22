@@ -1,6 +1,7 @@
 package com.example.demodiscovery;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -9,17 +10,23 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 //import javax.ws.rs.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
-//@Order(1)
+@Order(1)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("discUser")
-                .password("discPassword").roles("SYSTEM");
+
+        auth
+                .inMemoryAuthentication()
+                .withUser("discUser")
+                .password(passwordEncoder().encode("discPassword"))
+                .roles("SYSTEM");
     }
 
     @Override
@@ -48,5 +55,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER).and().httpBasic().disable().authorizeRequests().antMatchers(HttpMethod.GET, "/").hasRole("ADMIN").antMatchers("/info", "/health").authenticated().anyRequest().denyAll()
                     .and().csrf().disable();
         }
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
